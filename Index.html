@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>др</title>
+  <style>
+    :root{--bg:#f3f6fb;--card:#fff;--accent:#2563eb;--muted:#6b7280;--danger:#dc2626}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, 'Helvetica Neue', Arial;
+      background:linear-gradient(180deg,var(--bg),#eef2ff);
+      display:flex;align-items:center;justify-content:center;
+      padding:24px;
+    }
+    .app{width:100%;max-width:780px;text-align:center;}
+    header h1{margin:0 0 24px 0;font-size:36px;letter-spacing:0.02em;color:#111827;}
+    .center-area{display:flex;flex-direction:column;align-items:center;gap:20px;}
+    button#cartBtn{
+      appearance:none;border:0;padding:16px 28px;border-radius:12px;
+      font-size:16px;font-weight:600;cursor:pointer;
+      background:linear-gradient(180deg,var(--accent),#1e40af);
+      color:white;box-shadow:0 8px 20px rgba(37,99,235,0.18);
+      transition:transform .12s ease, box-shadow .12s ease;
+    }
+    button#cartBtn:active{transform:translateY(2px)}
+    .cells{display:flex;gap:16px;margin-top:8px;opacity:0;transform:translateY(-6px) scale(0.98);pointer-events:none;transition:opacity .28s ease, transform .28s ease;}
+    .cells.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+    .cell{
+      background:var(--card);padding:18px 22px;border-radius:12px;min-width:120px;flex:1;
+      box-shadow:0 6px 18px rgba(15,23,42,0.06);border:1px solid rgba(15,23,42,0.03);
+      display:flex;align-items:center;justify-content:center;font-weight:600;color:#111827;
+      cursor:pointer;
+    }
+    .items{margin-top:20px;display:none;flex-wrap:wrap;gap:16px;justify-content:center;}
+    .items.show{display:flex}
+    .item{background:var(--card);padding:12px 20px;border-radius:12px;flex:0 1 auto;box-shadow:0 4px 10px rgba(0,0,0,0.05);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+    @media (max-width:520px){.cells{flex-direction:column;width:100%}.cell{width:100%}}
+    .hint{color:var(--muted);font-size:14px}
+    .secret-input{margin-top:16px;display:none;gap:8px;align-items:center;justify-content:center;}
+    .secret-input input{padding:8px 12px;border:1px solid #ccc;border-radius:8px;font-size:14px;}
+    .secret-input button{padding:8px 14px;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;}
+    .error{color:var(--danger);font-size:14px;margin-top:8px;}
+  </style>
+</head>
+<body>
+  <div class="app" role="application">
+    <header>
+      <h1>др</h1>
+    </header>
+    <main class="center-area">
+      <button id="cartBtn" aria-expanded="false" aria-controls="cells">Корзина</button>
+      <div id="cells" class="cells" role="list" aria-hidden="true">
+        <div class="cell" data-type="alco" role="listitem">Алкоголь</div>
+        <div class="cell" data-type="soft" role="listitem">Напитки</div>
+        <div class="cell" data-type="other" role="listitem">Остальное</div>
+        <div class="cell" data-type="secret" role="listitem">Секрет</div>
+      </div>
+      <div id="items" class="items"></div>
+      <div class="secret-input" id="secretInput">
+        <input type="password" id="password" placeholder="Введите пароль" />
+        <button id="checkPass">Войти</button>
+      </div>
+      <div id="error" class="error"></div>
+      <div class="hint">Нажмите «Корзина», чтобы показать/скрыть категории</div>
+    </main>
+  </div>
+
+  <script>
+    const btn = document.getElementById('cartBtn');
+    const cells = document.getElementById('cells');
+    const itemsBox = document.getElementById('items');
+    const secretInput = document.getElementById('secretInput');
+    const passwordInput = document.getElementById('password');
+    const checkPassBtn = document.getElementById('checkPass');
+    const errorBox = document.getElementById('error');
+
+    const data = {
+      alco: ["Green Baboon","Martini","Tequila","Пиво","Ром","Клубничный ликер","Чекушка ягермейстера"],
+      soft: ["Тоник","Спрайт","Кола"],
+      other: ["Чипсы","Лайм","Хлеб","Колбаса","Соусы","Шашлык"],
+      secret: []
+    };
+
+    btn.addEventListener('click', () => {
+      const isShown = cells.classList.toggle('show');
+      cells.setAttribute('aria-hidden', !isShown);
+      btn.setAttribute('aria-expanded', isShown);
+      if (!isShown){
+        itemsBox.classList.remove('show');
+        secretInput.style.display = 'none';
+        errorBox.textContent = '';
+      }
+    });
+
+    document.querySelectorAll('.cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const type = cell.getAttribute('data-type');
+        itemsBox.innerHTML = '';
+        errorBox.textContent = '';
+        if(type === 'secret'){
+          secretInput.style.display = 'flex';
+          itemsBox.classList.remove('show');
+        } else {
+          secretInput.style.display = 'none';
+          data[type].forEach(name => {
+            const el = document.createElement('div');
+            el.className = 'item';
+            el.textContent = name;
+            itemsBox.appendChild(el);
+          });
+          itemsBox.classList.add('show');
+        }
+      });
+    });
+
+    checkPassBtn.addEventListener('click', () => {
+      if(passwordInput.value === 'АЗТЕК'){
+        itemsBox.innerHTML = '';
+        const el = document.createElement('div');
+        el.className = 'cell';
+        el.style.flex = '0 1 auto';
+        el.textContent = 'Treasure of Aztec MAX WIN';
+        itemsBox.appendChild(el);
+        itemsBox.classList.add('show');
+        secretInput.style.display = 'none';
+        errorBox.textContent = '';
+      } else {
+        errorBox.textContent = 'Неверный пароль';
+      }
+    });
+
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        cells.classList.remove('show');
+        cells.setAttribute('aria-hidden', true);
+        btn.setAttribute('aria-expanded', false);
+        itemsBox.classList.remove('show');
+        secretInput.style.display = 'none';
+        errorBox.textContent = '';
+      }
+    });
+  </script>
+</body>
+</html>
